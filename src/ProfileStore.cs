@@ -20,6 +20,7 @@ public sealed class Settings                                                    
 {                                                                                                          // start of Settings
     public string DefaultProfile { get; set; } = "";                                                       // profile restored at login ("" = none)
     public bool ScaleWhenScreenChanges { get; set; } = true;                                               // stretch/shrink positions if the screen size differs
+    public string AcceptedLicense { get; set; } = "";                                                      // license version the user agreed to ("" = not yet)
 }                                                                                                          // end of Settings
 
 /// <summary>File and registry handling for profiles and settings.</summary>                              // doc comment

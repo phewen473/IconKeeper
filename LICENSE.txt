@@ -1,0 +1,57 @@
+ICONKEEPER - END-USER LICENSE AGREEMENT (FREEWARE)
+License version 1.0 - November 22, 2026
+
+Copyright (c) 2026 P. H. Ewen (KO4WSC). All rights reserved.
+
+Please read this agreement carefully. By clicking "I Agree", or by installing,
+copying or using IconKeeper (the "Software"), you agree to these terms. If you
+do not agree, click "I Do Not Agree" and do not use the Software.
+
+1. GRANT OF LICENSE
+   The Software is freeware. You may install and use it, free of charge, on any
+   number of computers that you own or control, for personal or business use.
+
+2. SHARING
+   You may give exact, unmodified copies of the Software to others, free of
+   charge, as long as this license agreement goes with every copy. You may not
+   sell, rent, lease or license the Software, or include it in any product or
+   package that is sold, without written permission from the copyright holder.
+
+3. RESTRICTIONS
+   You may not modify, translate, reverse engineer, decompile or disassemble the
+   Software, except where applicable law expressly allows it despite this
+   restriction. You may not remove or change any copyright notice, this
+   agreement, or the About box.
+
+4. OWNERSHIP
+   The Software is licensed, not sold. P. H. Ewen keeps all title, copyright and
+   other rights in the Software. All rights not expressly granted here are
+   reserved.
+
+5. WHAT THE SOFTWARE DOES ON YOUR COMPUTER
+   The Software runs only on your computer and does not send any information
+   anywhere. It reads and moves the icons on your Windows desktop, may turn off
+   the "Auto arrange icons" setting when restoring a layout, stores its files in
+   %APPDATA%\IconKeeper, and, only if you choose it, adds an entry to your
+   Windows login startup list (HKCU\Software\Microsoft\Windows\CurrentVersion\Run).
+
+6. NO WARRANTY
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+   FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. YOU USE THE SOFTWARE
+   AT YOUR OWN RISK.
+
+7. LIMITATION OF LIABILITY
+   TO THE FULLEST EXTENT ALLOWED BY LAW, IN NO EVENT SHALL THE COPYRIGHT HOLDER
+   BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, INCLUDING ANY DIRECT,
+   INDIRECT, INCIDENTAL, SPECIAL OR CONSEQUENTIAL DAMAGES, OR LOSS OF DATA,
+   ARISING OUT OF OR IN CONNECTION WITH THE SOFTWARE OR ITS USE, EVEN IF ADVISED
+   OF THE POSSIBILITY OF SUCH DAMAGES.
+
+8. TERMINATION
+   This license ends automatically if you break any of its terms. When it ends,
+   you must stop using the Software and delete all copies of it.
+
+9. ENTIRE AGREEMENT
+   This is the entire agreement between you and the copyright holder about the
+   Software. If any part of it cannot be enforced, the rest stays in effect.

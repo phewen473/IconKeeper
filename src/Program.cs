@@ -9,7 +9,7 @@ namespace IconKeeper;                                                           
 
 internal static class Program                                                                              // startup class
 {                                                                                                          // start of Program
-    public const string VersionName = "V1R2";                                                              // shown in the title bar; matches the versions\ folder
+    public const string VersionName = "V1R3";                                                              // shown in the title bar; matches the versions\ folder
 
     [DllImport("kernel32.dll")]                                                                            // Windows API
     static extern bool AttachConsole(int processId);                                                       // lets this GUI exe print to the Command Prompt that started it
@@ -26,6 +26,7 @@ internal static class Program                                                   
                 MessageBox.Show("IconKeeper is already open.", "IconKeeper", MessageBoxButtons.OK, MessageBoxIcon.Information); // say so
                 return 0;                                                                                  // and quit
             }                                                                                              // end of if
+            if (!LicenseGate.AskIfNeeded()) return 0;                                                      // first run: must accept the license (declining exits)
             Application.Run(new MainForm());                                                               // show the window until it is closed
             return 0;                                                                                      // normal exit
         }                                                                                                  // end of if
@@ -45,6 +46,12 @@ internal static class Program                                                   
         string command = args[0].TrimStart('/', '-').ToLowerInvariant();                                   // accept /save, -save or --save
         string name = string.Join(" ", args.Skip(1)).Trim().Trim('"');                                     // the rest is the profile name (spaces allowed)
         var settings = ProfileStore.LoadSettings();                                                        // needed for scaling and the default
+        if (command is "save" or "restore" or "restore-default" && !LicenseGate.IsAccepted())              // working commands need the license accepted
+        {                                                                                                  // start of if
+            Say("Please open IconKeeper once and accept the license agreement first.");                    // tell the user
+            Log.Write($"'{command}' refused: license not accepted yet.");                                  // log it (matters for the silent login run)
+            return 4;                                                                                      // exit code 4 = license not accepted
+        }                                                                                                  // end of if
         switch (command)                                                                                   // pick the job
         {                                                                                                  // start of switch
             case "save":                                                                                   // save the current layout

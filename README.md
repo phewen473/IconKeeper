@@ -4,7 +4,13 @@ IconKeeper saves where your desktop icons are and puts them back later. You can 
 saved layouts ("profiles") as you like. One of them can be the **default**, and Windows can
 restore it automatically each time you log in.
 
-Current version: **V1R2** (2026-11-22): green checkmark icon, and the window minimizes to the system tray.
+Current version: **V1R3** (2026-11-22): About box, freeware license agreement (accepted on first
+run), Help window (F1), help documentation and build plan. Published on GitHub.
+
+Freeware. Copyright (c) 2026 P. H. Ewen (KO4WSC). See [LICENSE.txt](LICENSE.txt).
+
+- **User help:** [docs/HELP.md](docs/HELP.md) (the same text the program shows under Help / F1)
+- **Build plan:** [docs/BUILD-PLAN.md](docs/BUILD-PLAN.md) (requirements, design, build, release and test steps)
 
 ## Where things live
 
@@ -13,7 +19,9 @@ Current version: **V1R2** (2026-11-22): green checkmark icon, and the window min
 | Project folder | the folder that holds `build.bat` (wherever you put IconKeeper) |
 | The program | `IconKeeper.exe` in the project folder |
 | Source code | `src\` in the project folder |
-| Version snapshots | `versions\IconKeeper-V1R1\`, `...\IconKeeper-V1R2\` (exe + source; older versions are never overwritten) |
+| Version snapshots | `versions\IconKeeper-V1R1\` to `...\IconKeeper-V1R3\` (exe + source; older versions are never overwritten) |
+| License | `LICENSE.txt` (built into the exe; shown on first run and from About...) |
+| Help and build plan | `docs\HELP.md` (built into the exe; Help / F1), `docs\BUILD-PLAN.md` |
 | Icon | `src\app.ico`, drawn by `tools\make_icon.ps1` (re-run that script if you change the design) |
 | Your saved profiles | `%APPDATA%\IconKeeper\profiles\<name>.json` (plain JSON, readable in Notepad) |
 | Settings (default profile, scaling) | `%APPDATA%\IconKeeper\settings.json` |
@@ -56,7 +64,7 @@ IconKeeper /restore-default    wait for the desktop to load, then restore the de
 IconKeeper /list               list profiles (* marks the default)
 ```
 
-Exit codes: 0 = OK, 1 = error, 2 = profile not found, 3 = desktop never became ready (login mode).
+Exit codes: 0 = OK, 1 = error, 2 = profile not found, 3 = desktop never became ready (login mode), 4 = license not accepted yet.
 Names may contain spaces. Text output appears when it is run from a Command Prompt.
 
 ## How it works (plain English)
@@ -84,6 +92,7 @@ Source files:
 
 - `src\Program.cs`: startup, command-line commands, login restore
 - `src\MainForm.cs`: the window, the system tray icon and menu, and the name dialog
+- `src\AboutAndLicense.cs`: About box, License Agreement window, first-run license check, Help window
 - `src\app.ico`: the checkmark icon (on the exe, and embedded so the window and tray load crisp sizes)
 - `tools\make_icon.ps1`: draws `app.ico` (green rounded square, white check, sizes 16 to 256)
 - `src\ProfileStore.cs`: profile and settings files, the login registry entry, the log
@@ -97,5 +106,8 @@ Every line of code carries a comment explaining what it does.
   and a real move test (moved one icon one row down, then back) all worked. The window opens.
 - V1R2 (same evening): added the checkmark icon and minimize-to-tray. Tested: the exe shows the
   checkmark, and minimizing hides the window while the program keeps running.
-- Ideas for later: an option to start minimized in the tray, and automatically picking a profile
-  based on which monitors are connected.
+- V1R3 (same evening): About box, license agreement, Help window, docs\HELP.md and
+  docs\BUILD-PLAN.md; published to GitHub. Tested: the license window appears on first run and
+  "I Agree" opens the main window and is remembered; command-line jobs return exit code 4 until it is accepted;
+  About, License Agreement and Help windows open and display correctly.
+- Ideas for later: see section 7 of docs\BUILD-PLAN.md.

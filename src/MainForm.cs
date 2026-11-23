@@ -19,24 +19,20 @@ internal sealed class MainForm : Form                                           
     readonly NotifyIcon tray = new() { Text = "IconKeeper", Visible = false };                             // the icon by the clock, shown while minimized
     readonly ContextMenuStrip trayMenu = new();                                                            // right-click menu for the tray icon
     bool trayTipShown;                                                                                     // the "still running here" balloon is shown only once per run
-
-    /// <summary>Loads the checkmark icon packed inside the exe, at the size asked for.</summary>          // doc comment
-    static Icon LoadAppIcon(Size size)                                                                     // size = which of the icon's images to use
-    {                                                                                                      // start of LoadAppIcon
-        using var stream = typeof(MainForm).Assembly.GetManifestResourceStream("IconKeeper.app.ico");      // the embedded app.ico
-        return stream != null ? new Icon(stream, size) : SystemIcons.Application;                          // fall back to the plain Windows icon if missing
-    }                                                                                                      // end of LoadAppIcon
+    HelpForm? help;                                                                                        // the Help window, if open (only one at a time)
 
     public MainForm()                                                                                      // builds the window
     {                                                                                                      // start of constructor
         Text = $"IconKeeper {Program.VersionName} - Desktop Icon Layouts";                                 // title bar
         AutoScaleDimensions = new SizeF(96F, 96F);                                                         // sizes below are written for 96 DPI (100%)
         AutoScaleMode = AutoScaleMode.Dpi;                                                                 // scale them up on high-DPI screens
-        ClientSize = new Size(820, 420);                                                                   // starting size
-        MinimumSize = new Size(640, 340);                                                                  // do not let it get too small
+        ClientSize = new Size(820, 520);                                                                   // starting size (tall enough for all ten buttons)
+        MinimumSize = new Size(640, 500);                                                                  // do not let it get too small to show the buttons
         StartPosition = FormStartPosition.CenterScreen;                                                    // open in the middle of the screen
-        Icon = LoadAppIcon(new Size(32, 32));                                                              // checkmark in the title bar and taskbar
-        tray.Icon = LoadAppIcon(SystemInformation.SmallIconSize);                                          // small checkmark for the tray (16 px at 100%)
+        Icon = AppResources.LoadIcon(new Size(32, 32));                                                    // checkmark in the title bar and taskbar
+        tray.Icon = AppResources.LoadIcon(SystemInformation.SmallIconSize);                                // small checkmark for the tray (16 px at 100%)
+        KeyPreview = true;                                                                                 // let the form see keys before the controls do
+        KeyDown += (_, e) => { if (e.KeyCode == Keys.F1) { e.Handled = true; ShowHelp(); } };              // F1 = Help
         tray.ContextMenuStrip = trayMenu;                                                                  // right-click shows our menu
         trayMenu.Opening += (_, _) => BuildTrayMenu();                                                     // rebuild it each time so the profile list is current
         tray.MouseClick += (_, e) => { if (e.Button == MouseButtons.Left) ShowFromTray(); };               // left-click the tray icon = open the window
@@ -61,6 +57,8 @@ internal sealed class MainForm : Form                                           
         buttons.Controls.Add(MakeButton("Delete", DeleteSelected, true));                                  // delete a profile
         buttons.Controls.Add(MakeButton("Open data folder", OpenFolder, false));                           // show %APPDATA%\IconKeeper in Explorer
         buttons.Controls.Add(MakeButton("Refresh", ReloadList, false));                                    // re-read the profiles
+        buttons.Controls.Add(MakeButton("Help (F1)", ShowHelp, false));                                    // open the help window
+        buttons.Controls.Add(MakeButton("About...", ShowAbout, false));                                    // About box (version, copyright, license)
 
         var options = new FlowLayoutPanel                                                                  // the two check boxes under the list
         { Dock = DockStyle.Bottom, FlowDirection = FlowDirection.TopDown, AutoSize = true, Padding = new Padding(6) }; // layout settings
@@ -246,6 +244,20 @@ internal sealed class MainForm : Form                                           
         });                                                                                                // end of action
     }                                                                                                      // end of RunAtLoginChanged
 
+    /// <summary>Opens the Help window, or brings it forward if it is already open.</summary>             // doc comment
+    void ShowHelp()                                                                                        // Help button, F1, tray menu
+    {                                                                                                      // start of ShowHelp
+        if (help == null || help.IsDisposed) { help = new HelpForm(); help.Show(); }                      // open a new one (not modal: you can keep it beside the main window)
+        else { help.WindowState = FormWindowState.Normal; help.Activate(); }                               // already open: bring it to the front
+    }                                                                                                      // end of ShowHelp
+
+    /// <summary>Shows the About box.</summary>                                                            // doc comment
+    void ShowAbout()                                                                                       // About button, tray menu
+    {                                                                                                      // start of ShowAbout
+        using var about = new AboutForm();                                                                 // build it
+        about.ShowDialog(this);                                                                            // show it over the main window
+    }                                                                                                      // end of ShowAbout
+
     /// <summary>Hides the window and leaves only the tray icon.</summary>                                 // doc comment
     void HideToTray()                                                                                      // called when the window is minimized
     {                                                                                                      // start of HideToTray
@@ -291,6 +303,9 @@ internal sealed class MainForm : Form                                           
         restoreMenu.Enabled = profiles.Count > 0;                                                          // greyed out with no profiles
         trayMenu.Items.Add(restoreMenu);                                                                   // add the submenu
         trayMenu.Items.Add("Save current layout as...", null, (_, _) => { ShowFromTray(); Guard(SaveNew); }); // open the window and ask for a name
+        trayMenu.Items.Add(new ToolStripSeparator());                                                      // divider
+        trayMenu.Items.Add("Help", null, (_, _) => ShowHelp());                                            // open the help window
+        trayMenu.Items.Add("About IconKeeper", null, (_, _) => { ShowFromTray(); ShowAbout(); });          // About box over the main window
         trayMenu.Items.Add(new ToolStripSeparator());                                                      // divider
         trayMenu.Items.Add("Exit", null, (_, _) => Close());                                               // quit the program
     }                                                                                                      // end of BuildTrayMenu
