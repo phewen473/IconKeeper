@@ -7,8 +7,12 @@
     <ImplicitUsings>enable</ImplicitUsings>                             <!-- System, System.IO, System.Linq, WinForms etc. are imported automatically -->
     <AssemblyName>IconKeeper</AssemblyName>                             <!-- the exe is IconKeeper.exe -->
     <RootNamespace>IconKeeper</RootNamespace>                           <!-- code namespace -->
-    <Version>1.1.0</Version>                                            <!-- file version; V1R1 -->
+    <Version>1.2.0</Version>                                            <!-- file version; V1R2 -->
+    <ApplicationIcon>app.ico</ApplicationIcon>                          <!-- green checkmark icon on the exe (Explorer, taskbar, Alt-Tab) -->
     <ApplicationHighDpiMode>PerMonitorV2</ApplicationHighDpiMode>       <!-- DPI aware, so screen sizes are real pixels -->
     <SatelliteResourceLanguages>en</SatelliteResourceLanguages>         <!-- English only, no extra language folders -->
   </PropertyGroup>                                                      <!-- end of build settings -->
+  <ItemGroup>                                                           <!-- files packed inside the exe -->
+    <EmbeddedResource Include="app.ico" LogicalName="IconKeeper.app.ico" /> <!-- icon again, so the window and tray can load crisp sizes -->
+  </ItemGroup>                                                          <!-- end of packed files -->
 </Project>                                                              <!-- end of project -->

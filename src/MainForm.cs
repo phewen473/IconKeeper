@@ -16,6 +16,16 @@ internal sealed class MainForm : Form                                           
     readonly Label status = new() { Dock = DockStyle.Bottom, Height = 26, TextAlign = ContentAlignment.MiddleLeft, BorderStyle = BorderStyle.Fixed3D }; // status line
     readonly List<Button> needSelection = new();                                                           // buttons that only work with a profile selected
     bool loading;                                                                                          // true while we fill controls (so events do not save)
+    readonly NotifyIcon tray = new() { Text = "IconKeeper", Visible = false };                             // the icon by the clock, shown while minimized
+    readonly ContextMenuStrip trayMenu = new();                                                            // right-click menu for the tray icon
+    bool trayTipShown;                                                                                     // the "still running here" balloon is shown only once per run
+
+    /// <summary>Loads the checkmark icon packed inside the exe, at the size asked for.</summary>          // doc comment
+    static Icon LoadAppIcon(Size size)                                                                     // size = which of the icon's images to use
+    {                                                                                                      // start of LoadAppIcon
+        using var stream = typeof(MainForm).Assembly.GetManifestResourceStream("IconKeeper.app.ico");      // the embedded app.ico
+        return stream != null ? new Icon(stream, size) : SystemIcons.Application;                          // fall back to the plain Windows icon if missing
+    }                                                                                                      // end of LoadAppIcon
 
     public MainForm()                                                                                      // builds the window
     {                                                                                                      // start of constructor
@@ -25,7 +35,13 @@ internal sealed class MainForm : Form                                           
         ClientSize = new Size(820, 420);                                                                   // starting size
         MinimumSize = new Size(640, 340);                                                                  // do not let it get too small
         StartPosition = FormStartPosition.CenterScreen;                                                    // open in the middle of the screen
-        try { Icon = Icon.ExtractAssociatedIcon(Application.ExecutablePath); } catch { }                   // use the exe's icon if there is one
+        Icon = LoadAppIcon(new Size(32, 32));                                                              // checkmark in the title bar and taskbar
+        tray.Icon = LoadAppIcon(SystemInformation.SmallIconSize);                                          // small checkmark for the tray (16 px at 100%)
+        tray.ContextMenuStrip = trayMenu;                                                                  // right-click shows our menu
+        trayMenu.Opening += (_, _) => BuildTrayMenu();                                                     // rebuild it each time so the profile list is current
+        tray.MouseClick += (_, e) => { if (e.Button == MouseButtons.Left) ShowFromTray(); };               // left-click the tray icon = open the window
+        Resize += (_, _) => { if (WindowState == FormWindowState.Minimized) HideToTray(); };               // minimizing sends the window to the tray
+        FormClosed += (_, _) => { tray.Visible = false; tray.Dispose(); };                                 // remove the tray icon when the program ends
 
         list.Columns.Add("Profile", 240);                                                                  // column: profile name
         list.Columns.Add("Default", 70);                                                                   // column: Yes if restored at login
@@ -229,6 +245,71 @@ internal sealed class MainForm : Form                                           
                 : "Login restore is off.");                                                                // off
         });                                                                                                // end of action
     }                                                                                                      // end of RunAtLoginChanged
+
+    /// <summary>Hides the window and leaves only the tray icon.</summary>                                 // doc comment
+    void HideToTray()                                                                                      // called when the window is minimized
+    {                                                                                                      // start of HideToTray
+        tray.Visible = true;                                                                               // show the checkmark by the clock
+        Hide();                                                                                            // take the window off the taskbar
+        if (!trayTipShown)                                                                                 // first time this run?
+        {                                                                                                  // start of if
+            tray.ShowBalloonTip(3000, "IconKeeper", "Still running here. Click to open, right-click for quick restore.", ToolTipIcon.Info); // explain where it went
+            trayTipShown = true;                                                                           // do not repeat it
+        }                                                                                                  // end of if
+    }                                                                                                      // end of HideToTray
+
+    /// <summary>Brings the window back from the tray.</summary>                                           // doc comment
+    void ShowFromTray()                                                                                    // tray click or "Open IconKeeper"
+    {                                                                                                      // start of ShowFromTray
+        Show();                                                                                            // put it back on the taskbar
+        WindowState = FormWindowState.Normal;                                                              // un-minimize
+        Activate();                                                                                        // bring it to the front
+        tray.Visible = false;                                                                              // tray icon only while minimized
+        ReloadList();                                                                                      // profiles may have changed from the tray menu
+    }                                                                                                      // end of ShowFromTray
+
+    /// <summary>Fills the tray right-click menu (called every time it opens).</summary>                   // doc comment
+    void BuildTrayMenu()                                                                                   // keeps the profile list current
+    {                                                                                                      // start of BuildTrayMenu
+        trayMenu.Items.Clear();                                                                            // start empty
+        var open = trayMenu.Items.Add("Open IconKeeper", null, (_, _) => ShowFromTray());                  // bring the window back
+        open.Font = new Font(open.Font, FontStyle.Bold);                                                   // bold = the left-click action
+        trayMenu.Items.Add(new ToolStripSeparator());                                                      // divider
+        var settings = ProfileStore.LoadSettings();                                                        // to find the default
+        var profiles = ProfileStore.LoadAll();                                                             // every saved profile
+        var def = profiles.FirstOrDefault(p => p.Name.Equals(settings.DefaultProfile, StringComparison.OrdinalIgnoreCase)); // the default, if any
+        var restoreDefault = trayMenu.Items.Add(def != null ? $"Restore default ({def.Name})" : "Restore default (none set)", null, // one-click default restore
+            (_, _) => { if (def != null) TrayRestore(def.Name); });                                       // what it does
+        restoreDefault.Enabled = def != null;                                                              // greyed out with no default
+        var restoreMenu = new ToolStripMenuItem("Restore");                                                // submenu listing every profile
+        foreach (var p in profiles)                                                                        // one entry per profile
+        {                                                                                                  // start of loop body
+            string name = p.Name;                                                                          // copy for the click handler
+            var item = restoreMenu.DropDownItems.Add(name, null, (_, _) => TrayRestore(name));             // restore that profile
+            if (p == def) item.Font = new Font(item.Font, FontStyle.Bold);                                 // default shown in bold
+        }                                                                                                  // end of loop body
+        restoreMenu.Enabled = profiles.Count > 0;                                                          // greyed out with no profiles
+        trayMenu.Items.Add(restoreMenu);                                                                   // add the submenu
+        trayMenu.Items.Add("Save current layout as...", null, (_, _) => { ShowFromTray(); Guard(SaveNew); }); // open the window and ask for a name
+        trayMenu.Items.Add(new ToolStripSeparator());                                                      // divider
+        trayMenu.Items.Add("Exit", null, (_, _) => Close());                                               // quit the program
+    }                                                                                                      // end of BuildTrayMenu
+
+    /// <summary>Restores a profile from the tray menu and reports in a balloon.</summary>                 // doc comment
+    void TrayRestore(string name)                                                                          // name = profile to restore
+    {                                                                                                      // start of TrayRestore
+        try                                                                                                // errors go in a balloon, not a crash
+        {                                                                                                  // start of try
+            var p = ProfileStore.Load(name) ?? throw new FileNotFoundException($"Profile '{name}' not found."); // read it
+            var r = ProfileStore.Restore(p, scale.Checked);                                                // move the icons
+            tray.ShowBalloonTip(3000, "IconKeeper", $"Restored '{name}': {r.Moved} icons placed.", ToolTipIcon.Info); // short report
+        }                                                                                                  // end of try
+        catch (Exception ex)                                                                               // something failed
+        {                                                                                                  // start of catch
+            Log.Write("Tray restore error: " + ex);                                                        // full details in the log
+            tray.ShowBalloonTip(5000, "IconKeeper", "Restore failed: " + ex.Message, ToolTipIcon.Error);   // tell the user
+        }                                                                                                  // end of catch
+    }                                                                                                      // end of TrayRestore
 
     /// <summary>Scaling check box clicked: save the setting.</summary>                                    // doc comment
     void ScaleChanged()                                                                                    // event handler

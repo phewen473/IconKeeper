@@ -9,7 +9,7 @@ namespace IconKeeper;                                                           
 
 internal static class Program                                                                              // startup class
 {                                                                                                          // start of Program
-    public const string VersionName = "V1R1";                                                              // shown in the title bar; matches the versions\ folder
+    public const string VersionName = "V1R2";                                                              // shown in the title bar; matches the versions\ folder
 
     [DllImport("kernel32.dll")]                                                                            // Windows API
     static extern bool AttachConsole(int processId);                                                       // lets this GUI exe print to the Command Prompt that started it
