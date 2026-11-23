@@ -1,0 +1,4 @@
+# Build output that build.bat recreates (the finished IconKeeper.exe IS kept in Git)
+src/bin/
+src/obj/
+publish/
