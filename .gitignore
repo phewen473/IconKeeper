@@ -2,3 +2,5 @@
 src/bin/
 src/obj/
 publish/
+# Personal, machine-specific notes - kept on this PC only, never uploaded
+LOCAL-NOTES.md
